@@ -1,7 +1,10 @@
 from scapy.all import srp, ARP, Ether
+from colorama import Fore, Back, Style
 import datetime
 import time
 import json
+
+IP_RANGE = "192.168.178.0/24"
 
 start_time = time.time()
 up_hosts = []
@@ -21,27 +24,29 @@ class Host:
 
 # Print date and time
 current_time = datetime.datetime.now()
-print(f"Started at {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
+print(f"Started scan of {Fore.LIGHTBLUE_EX}{IP_RANGE}{Style.RESET_ALL} at {Fore.LIGHTWHITE_EX}{current_time.strftime('%Y-%m-%d %H:%M:%S')}{Style.RESET_ALL}")
 
 # Scan using ARP Ping
-print("Scanning...")
-answered, unanswered = srp(Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(pdst="192.168.3.0/24"), timeout=2, verbose=0)
+# print(f"{Fore.LIGHTBLACK_EX}Scanning: [################################] 256/256{Style.RESET_ALL}")
+answered, unanswered = srp(Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(pdst=IP_RANGE), timeout=2, verbose=0)
 
 # Save up hosts
 for host in answered.res:
     up_hosts.append(Host(host[1].psrc, host[1].hwsrc))
 
 # Print results
-print("Results:")
 for i, host in enumerate(up_hosts):
-    print(f"Host {host.ip} is up ({host.mac}, \"{host.find_vendor()}\")")
+    vendor = host.find_vendor()
+    vendor = " => " + vendor if vendor else ""
+    print(f"{Fore.GREEN}⬤{Style.RESET_ALL}  Host {Style.BRIGHT}{host.ip:15}{Style.RESET_ALL} is {Fore.LIGHTGREEN_EX}up{Style.RESET_ALL} " + \
+        f"{Fore.LIGHTBLACK_EX}({Fore.LIGHTWHITE_EX}{host.mac}{Style.RESET_ALL}{vendor}{Fore.LIGHTBLACK_EX}){Style.RESET_ALL}")
 
 # Print statistics
 total = len(answered) + len(unanswered)
-print(f"Found {len(up_hosts)} hosts are up out of {total}")
+print(f"Found {Style.BRIGHT}{len(up_hosts)}{Style.RESET_ALL} out of {Fore.LIGHTWHITE_EX}{total}{Style.RESET_ALL} hosts are up")
 
 duration = round(time.time() - start_time, 2)
-print(f"Finished in {duration} seconds")
+print(f"Finished in {Fore.LIGHTWHITE_EX}{duration}{Style.RESET_ALL} seconds")
 
 # Save results to JSON output file
 filename = f"scan_{current_time.strftime('%Y-%m-%d_%H-%M-%S')}.json"
