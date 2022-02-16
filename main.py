@@ -18,9 +18,13 @@ class Host:
         self.mac = mac
         
     def find_vendor(self):
+        if hasattr(self, 'vendor'):
+            return self.vendor
+        
         for prefix in mac_prefixes:
             if self.mac.upper().startswith(prefix):
-                return mac_prefixes[prefix]
+                self.vendor = mac_prefixes[prefix]
+                return self.vendor
 
 # Print date and time
 current_time = datetime.datetime.now()
@@ -53,6 +57,7 @@ print(f"Finished in {Fore.LIGHTWHITE_EX}{duration}{Style.RESET_ALL} seconds")
 
 # Save results to JSON output file
 filename = f"scan_{current_time.strftime('%Y-%m-%d_%H-%M-%S')}.json"
+print(f"Saved results to {Fore.LIGHTWHITE_EX}{filename}{Style.RESET_ALL}")
 with open(filename, "w") as f:
     output = {
         "start_time": int(current_time.timestamp()),
@@ -64,7 +69,8 @@ with open(filename, "w") as f:
     for host in up_hosts:
         output["up_hosts"].append({
             "ip": host.ip,
-            "mac": host.mac
+            "mac": host.mac,
+            "vendor": host.find_vendor()
         })
     
     f.write(json.dumps(output, indent=4))
