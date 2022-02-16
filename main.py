@@ -38,8 +38,10 @@ for host in answered.res:
 for i, host in enumerate(up_hosts):
     vendor = host.find_vendor()
     vendor = " => " + vendor if vendor else ""
-    print(f"{Fore.GREEN}⬤{Style.RESET_ALL}  Host {Style.BRIGHT}{host.ip:15}{Style.RESET_ALL} is {Fore.LIGHTGREEN_EX}up{Style.RESET_ALL} " + \
-        f"{Fore.LIGHTBLACK_EX}({Fore.LIGHTWHITE_EX}{host.mac}{Style.RESET_ALL}{vendor}{Fore.LIGHTBLACK_EX}){Style.RESET_ALL}")
+    ip = f"{host.ip:15}".replace(".", f"{Fore.LIGHTBLACK_EX}.{Fore.WHITE}")
+    mac = host.mac.replace(":", f"{Fore.LIGHTBLACK_EX}:{Fore.YELLOW}")
+    print(f"{Fore.GREEN}⬤{Style.RESET_ALL}  Host {Style.BRIGHT}{ip}{Style.RESET_ALL} is {Fore.LIGHTGREEN_EX}up{Style.RESET_ALL} " + \
+        f"{Fore.LIGHTBLACK_EX}({Fore.YELLOW}{mac}{Style.RESET_ALL}{vendor}{Fore.LIGHTBLACK_EX}){Style.RESET_ALL}")
 
 # Print statistics
 total = len(answered) + len(unanswered)
