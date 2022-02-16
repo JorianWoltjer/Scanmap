@@ -4,13 +4,20 @@ import time
 import json
 
 start_time = time.time()
-
 up_hosts = []
+
+with open("mac-prefix-table.json") as f:
+    mac_prefixes = json.load(f)
 
 class Host:
     def __init__(self, ip, mac):
         self.ip = ip
         self.mac = mac
+        
+    def find_vendor(self):
+        for prefix in mac_prefixes:
+            if self.mac.upper().startswith(prefix):
+                return mac_prefixes[prefix]
 
 # Print date and time
 current_time = datetime.datetime.now()
@@ -18,15 +25,16 @@ print(f"Started at {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
 
 # Scan using ARP Ping
 print("Scanning...")
-answered, unanswered = srp(Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(pdst="192.168.178.0/24"), timeout=2, verbose=0)
+answered, unanswered = srp(Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(pdst="192.168.3.0/24"), timeout=2, verbose=0)
 
 # Save up hosts
-up_hosts = [Host(response[1].psrc, response[1].src) for response in answered.res]
+for host in answered.res:
+    up_hosts.append(Host(host[1].psrc, host[1].hwsrc))
 
 # Print results
 print("Results:")
 for i, host in enumerate(up_hosts):
-    print(f"Host {host.ip} is up ({host.mac})")
+    print(f"Host {host.ip} is up ({host.mac}, \"{host.find_vendor()}\")")
 
 # Print statistics
 total = len(answered) + len(unanswered)
