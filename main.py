@@ -3,6 +3,8 @@ from colorama import Fore, Back, Style
 import datetime
 import time
 import json
+import pyfiglet
+import random
 
 IP_RANGE = "192.168.178.0/24"
 
@@ -26,6 +28,11 @@ class Host:
                 self.vendor = mac_prefixes[prefix]
                 return self.vendor
 
+# Header
+print(Fore.LIGHTWHITE_EX+pyfiglet.figlet_format("Scanmap", font="slant")+Style.RESET_ALL)
+print("© 2022 Jorian Woltjer & Giovanni Aramu - All rights reserved")
+print()
+
 # Print date and time
 current_time = datetime.datetime.now()
 print(f"Started scan of {Fore.LIGHTBLUE_EX}{IP_RANGE}{Style.RESET_ALL} at {Fore.LIGHTWHITE_EX}{current_time.strftime('%Y-%m-%d %H:%M:%S')}{Style.RESET_ALL}")
@@ -40,6 +47,7 @@ for host in answered.res:
     up_hosts.append(Host(host[1].psrc, host[1].hwsrc))
 
 # Print results
+print(f"{Style.BRIGHT}Results:{Style.RESET_ALL}")
 for i, host in enumerate(up_hosts):
     vendor = host.find_vendor()
     vendor = " => " + vendor if vendor else ""
@@ -47,6 +55,10 @@ for i, host in enumerate(up_hosts):
     mac = host.mac.replace(":", f"{Fore.LIGHTBLACK_EX}:{Fore.YELLOW}")
     print(f"{Fore.GREEN}⬤{Style.RESET_ALL}  Host {Style.BRIGHT}{ip}{Style.RESET_ALL} is {Fore.LIGHTGREEN_EX}up{Style.RESET_ALL} " + \
         f"{Fore.LIGHTBLACK_EX}({Fore.YELLOW}{mac}{Style.RESET_ALL}{vendor}{Fore.LIGHTBLACK_EX}){Style.RESET_ALL}")
+    ports = [random.randrange(1, 1024) for i in range(random.randrange(1, 10))]
+    ports_str = (Fore.LIGHTBLACK_EX+', ').join([Fore.LIGHTBLUE_EX+str(p) for p in ports])
+    print(f"     {Fore.LIGHTBLACK_EX}┗╸{Style.RESET_ALL} {Fore.LIGHTWHITE_EX}Ports{Style.RESET_ALL}: {ports_str}{Style.RESET_ALL}")
+print()
 
 # Print statistics
 total = len(answered) + len(unanswered)
