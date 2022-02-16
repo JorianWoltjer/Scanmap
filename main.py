@@ -27,8 +27,9 @@ current_time = datetime.datetime.now()
 print(f"Started scan of {Fore.LIGHTBLUE_EX}{IP_RANGE}{Style.RESET_ALL} at {Fore.LIGHTWHITE_EX}{current_time.strftime('%Y-%m-%d %H:%M:%S')}{Style.RESET_ALL}")
 
 # Scan using ARP Ping
-# print(f"{Fore.LIGHTBLACK_EX}Scanning: [################################] 256/256{Style.RESET_ALL}")
-answered, unanswered = srp(Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(pdst=IP_RANGE), timeout=2, verbose=0)
+print(Fore.LIGHTBLACK_EX, end="")
+answered, unanswered = srp(Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(pdst=IP_RANGE), timeout=2)
+print(Style.RESET_ALL, end="")
 
 # Save up hosts
 for host in answered.res:
