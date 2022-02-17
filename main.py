@@ -61,10 +61,9 @@ class Host:
         if hasattr(self, 'vendor'):
             return self.vendor
         
-        for prefix in mac_prefixes:
-            if self.mac.upper().startswith(prefix):
-                self.vendor = mac_prefixes[prefix]
-                return self.vendor
+        matches = list(filter(self.mac.upper().startswith, mac_prefixes))
+        if len(matches) > 0:
+            return mac_prefixes[max(matches, key=len)]  # Return longest match
     
     def get_hostname(self):
         try:
