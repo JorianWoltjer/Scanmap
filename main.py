@@ -51,25 +51,38 @@ def get_ports(s):
 if ARGS.ports:
     ARGS.ports = get_ports(ARGS.ports)
 
+def format_highlight(text, color, other_color=Fore.LIGHTBLACK_EX):
+    if text:
+        return re.sub(rf'(\w+)(\W*)', rf'{color}\1{other_color}\2', text) + Style.RESET_ALL
+
 class Host:
     def __init__(self, ip, mac):
         self.ip = ip
         self.mac = mac
         self.ports = []
         
-    def find_vendor(self):
+    def get_vendor(self):
         if hasattr(self, 'vendor'):
             return self.vendor
         
         matches = list(filter(self.mac.upper().startswith, mac_prefixes))
         if len(matches) > 0:
-            return mac_prefixes[max(matches, key=len)]  # Return longest match
+            self.vendor =  mac_prefixes[max(matches, key=len)]  # Return longest match
+        else:
+            self.vendor = None
+        
+        return self.vendor
     
     def get_hostname(self):
+        if hasattr(self, 'hostname'):
+            return self.hostname
+        
         try:
-            return socket.gethostbyaddr(self.ip)[0]
+            self.hostname = socket.gethostbyaddr(self.ip)[0]
         except socket.herror:  # If not found
-            return ""
+            self.hostname = None
+        
+        return self.hostname
         
     def scan_ports(self, ports_to_scan):
         for port in ports_to_scan:
@@ -92,6 +105,44 @@ class Host:
         
         for t in thread_list:
             t.join()
+            
+    def summary(self):  # JSON summary
+        data = {
+            "ip": self.ip,
+            "mac": self.mac,
+            "vendor": self.get_vendor()
+        }
+        if ARGS.hostname and self.hostname:
+            data["hostname"] = self.hostname
+        if ARGS.ports:
+            data["ports"] = self.ports
+            
+        return data
+    
+    def __str__(self):
+        result = ""
+        attributes = {
+            "Hostname": self.hostname,
+            "Ports": format_highlight(', '.join(str(p) for p in self.ports), Fore.LIGHTBLUE_EX),
+        }
+        vendor_str = " => " + self.get_vendor() if self.get_vendor() else ""
+        ip = format_highlight(self.ip, Fore.LIGHTWHITE_EX)
+        mac = format_highlight(self.mac, Fore.YELLOW)
+        
+        result += f"{Fore.GREEN}⬤ {Style.RESET_ALL} Host {Style.BRIGHT}{ip}{Style.RESET_ALL} is up " + " "*(15-len(self.ip)) + \
+            f"{Fore.LIGHTBLACK_EX}({Fore.YELLOW}{mac}{Style.RESET_ALL}{vendor_str}{Fore.LIGHTBLACK_EX}){Style.RESET_ALL}"
+        
+        # Filter out empty attributes
+        attributes = {k: v for k, v in attributes.items() if v}
+        
+        items = list(attributes.items())
+        for attribute, value in items:
+            if (attribute, value) != items[-1]:
+                result += f"\n     {Fore.LIGHTBLACK_EX}┣╸{Style.RESET_ALL} {Fore.LIGHTWHITE_EX}{attribute}: {Fore.LIGHTBLUE_EX}{value}{Style.RESET_ALL}"
+            else:  # If last attribute
+                result += f"\n     {Fore.LIGHTBLACK_EX}┗╸{Style.RESET_ALL} {Fore.LIGHTWHITE_EX}{attribute}: {Fore.LIGHTBLUE_EX}{value}{Style.RESET_ALL}"
+
+        return result
         
 
 # Print start time
@@ -103,19 +154,18 @@ print_(Fore.LIGHTBLACK_EX, end="")
 answered, unanswered = srp(Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(pdst=ARGS.network), timeout=2, verbose=(not ARGS.json))
 print_(Style.RESET_ALL, end="")
 
-# Save up hosts
+# Save hosts
 for host in answered.res:
     up_hosts.append(Host(host[1].psrc, host[1].hwsrc))
 
-def find_hostname(host):
-    host.hostname = host.get_hostname()
+
 
 # Find hostnames
 if ARGS.hostname:
     threads = []
     print_(f"{Fore.LIGHTBLACK_EX}Finding hostnames...{Style.RESET_ALL}")  # TODO: Progress bar
     for host in up_hosts:
-        t = Thread(target=find_hostname, args=(host,))
+        t = Thread(target=host.get_hostname)
         threads.append(t)
         t.start()
 
@@ -136,22 +186,8 @@ if ARGS.ports:
 
 # Print results
 print_(f"{Style.BRIGHT}Results:{Style.RESET_ALL}")
-for i, host in enumerate(up_hosts):
-    vendor = host.find_vendor()
-    vendor_str = " => " + vendor if vendor else ""
-    ip_len = len(host.ip)
-    ip = host.ip.replace(".", f"{Fore.LIGHTBLACK_EX}.{Fore.WHITE}")
-    mac = host.mac.replace(":", f"{Fore.LIGHTBLACK_EX}:{Fore.YELLOW}")
-    
-    print_(f"{Fore.GREEN}⬤ {Style.RESET_ALL} Host {Style.BRIGHT}{ip}{Style.RESET_ALL} is {Fore.LIGHTGREEN_EX}up{Style.RESET_ALL} " + " "*(15-ip_len) + \
-        f"{Fore.LIGHTBLACK_EX}({Fore.YELLOW}{mac}{Style.RESET_ALL}{vendor_str}{Fore.LIGHTBLACK_EX}){Style.RESET_ALL}")
-    
-    if ARGS.hostname and host.hostname:
-        print_(f"     {Fore.LIGHTBLACK_EX}┣╸{Style.RESET_ALL} {Fore.LIGHTWHITE_EX}Hostname{Style.RESET_ALL}: {Fore.LIGHTWHITE_EX}\"{host.hostname}\"{Style.RESET_ALL}")
-    
-    if len(host.ports) > 0:
-        ports_str = (Fore.LIGHTBLACK_EX+', ').join([Fore.LIGHTBLUE_EX+str(p) for p in host.ports])
-        print_(f"     {Fore.LIGHTBLACK_EX}┗╸{Style.RESET_ALL} {Fore.LIGHTWHITE_EX}Ports{Style.RESET_ALL}: {ports_str}{Style.RESET_ALL}")
+for host in up_hosts:
+    print_(host)
 print_()
 
 # Print statistics
@@ -172,16 +208,7 @@ def to_json():
     }
     
     for host in up_hosts:
-        data = {
-            "ip": host.ip,
-            "mac": host.mac,
-            "vendor": host.find_vendor()
-        }
-        if ARGS.hostname and host.hostname:
-            data["hostname"] = host.hostname
-        if ARGS.ports:
-            data["ports"] = host.ports
-        
+        data = host.summary()
         output["up_hosts"].append(data)
     
     return json.dumps(output, indent=4)
