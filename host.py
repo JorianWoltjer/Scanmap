@@ -5,14 +5,18 @@ import nmap
 import json
 import re
 
+# default timer per socket faster is better for scanning time
 socket.setdefaulttimeout(0.2)
 
+# Opening joson mac prefix database  
 with open("data/mac-prefix-table.json") as f:
     mac_prefixes = json.load(f)
+
 
 def format_highlight(text, color, other_color=Fore.LIGHTBLACK_EX):
     return re.sub(rf'(\w+)(\W*)', rf'{color}\1{other_color}\2', text) + Style.RESET_ALL   
 
+# Class for object storage per host that has been detected as up 
 class Host:
     def __init__(self, ip, mac):
         self.ip = ip
@@ -21,6 +25,8 @@ class Host:
         self.hostname = None
         self.os = None
         self.ports = []
+        # self.applications
+        # self.services
         
     def get_vendor(self):
         if self.vendor: return self.vendor
@@ -32,7 +38,7 @@ class Host:
             self.vendor = None
         
         return self.vendor
-    
+    # Grabs the hostname from the found host
     def get_hostname(self):
         if self.hostname: return self.hostname
         
@@ -43,6 +49,7 @@ class Host:
         
         return self.hostname
     
+    # Grabs the OS from the found host
     def get_os(self):
         if self.os: return self.os
         
@@ -54,7 +61,8 @@ class Host:
             self.os = None
         
         return self.os
-        
+
+    # scans the ports on TCP status    
     def scan_ports(self, ports_to_scan):
         for port in ports_to_scan:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -63,7 +71,8 @@ class Host:
             
             if result == 0:
                 self.ports.append(port)
-                
+    
+    # scans the ports through multithreading on TCP status              
     def scan_ports_fast(self, ports_to_scan, threads):
         chunk_size = len(ports_to_scan) // threads + 1
         thread_list = []
@@ -76,12 +85,15 @@ class Host:
         
         for t in thread_list:
             t.join()
-            
+    
+    #  summary function which captures all class object data      
     def summary(self, ARGS):  # JSON summary
         data = {
             "ip": self.ip,
             "mac": self.mac,
             "vendor": self.get_vendor()
+            # "os": self.os   
+            # "ports": self.ports
         }
         if ARGS.hostname:
             data["hostname"] = self.hostname
@@ -90,6 +102,7 @@ class Host:
         
         return data
     
+    # constructor object for the network scan
     def __str__(self):
         result = ""
         attributes = {
