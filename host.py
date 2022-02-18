@@ -1,6 +1,7 @@
 from colorama import Fore, Style
 from threading import Thread
 import socket
+import nmap
 import json
 import re
 
@@ -10,8 +11,7 @@ with open("data/mac-prefix-table.json") as f:
     mac_prefixes = json.load(f)
 
 def format_highlight(text, color, other_color=Fore.LIGHTBLACK_EX):
-    if text:
-        return re.sub(rf'(\w+)(\W*)', rf'{color}\1{other_color}\2', text) + Style.RESET_ALL   
+    return re.sub(rf'(\w+)(\W*)', rf'{color}\1{other_color}\2', text) + Style.RESET_ALL   
 
 class Host:
     def __init__(self, ip, mac):
@@ -19,6 +19,7 @@ class Host:
         self.mac = mac
         self.vendor = None
         self.hostname = None
+        self.os = None
         self.ports = []
         
     def get_vendor(self):
@@ -41,6 +42,18 @@ class Host:
             self.hostname = None
         
         return self.hostname
+    
+    def get_os(self):
+        if self.os: return self.os
+        
+        nm = nmap.PortScanner()
+        result = nm.scan(self.ip, ','.join(str(p) for p in self.ports), arguments="-n -O")
+        try:
+            self.os = result['scan'][self.ip]['osmatch'][0]
+        except (KeyError, IndexError):
+            self.os = None
+        
+        return self.os
         
     def scan_ports(self, ports_to_scan):
         for port in ports_to_scan:
@@ -81,7 +94,8 @@ class Host:
         result = ""
         attributes = {
             "Hostname": self.hostname,
-            "Ports": format_highlight(', '.join(str(p) for p in self.ports), Fore.LIGHTBLUE_EX),
+            "Operating System": f"{self.os['name']} {Fore.LIGHTWHITE_EX}({self.os['accuracy']}%)" if self.os else None,
+            "Ports": format_highlight(', '.join(str(p) for p in self.ports), Fore.LIGHTBLUE_EX) if self.ports else None,
         }
         vendor_str = " => " + self.get_vendor() if self.get_vendor() else ""
         ip = format_highlight(self.ip, Fore.LIGHTWHITE_EX)

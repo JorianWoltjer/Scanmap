@@ -1,11 +1,13 @@
 import argparse
+import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument("network", help="network to scan, or single host (ex. 192.168.1.0/24 or 192.168.1.42)")
-parser.add_argument('-p', '--ports', help="ports to scan for all found hosts. 'top', 'all', a range (ex. 1-1024), or a comma-separated list (ex. 22,80,443)")
+parser.add_argument('-p', '--ports', required="--os" in " ".join(sys.argv), help="ports to scan for all found hosts. 'top', 'all', a range (ex. 1-1024), or a comma-separated list (ex. 22,80,443)")
 parser.add_argument('-o', '--output', help="save output to file in JSON format", type=argparse.FileType('w', encoding='UTF-8'))
-parser.add_argument('-n', '--hostname', help="get hostname for each host", action='store_true')
+parser.add_argument('-n', '--hostname', help="get hostname for all found hosts", action='store_true')
 parser.add_argument('-t', '--threads', help="number of threads to use for port scanning", type=int, default=10)
+parser.add_argument('--os', help="scan for operating system on all found hosts", action="store_true")
 parser.add_argument('--json', help="output to stdout in JSON format", action="store_true")
 ARGS = parser.parse_args()
 
@@ -81,6 +83,11 @@ if ARGS.hostname:
 if ARGS.ports:
     print_(f"{Fore.LIGHTBLACK_EX}Scanning ports...{Style.RESET_ALL}")  # TODO: Progress bar, or estimate
     do_all_threaded(Host.scan_ports_fast, ARGS.ports, ARGS.threads)
+
+# Operating system detection (threaded)
+if ARGS.os:
+    print_(f"{Fore.LIGHTBLACK_EX}Detecting operating systems...{Style.RESET_ALL}")  # TODO: Progress bar, or estimate
+    do_all_threaded(Host.get_os)
 
 # Results
 print_(f"{Style.BRIGHT}Results:{Style.RESET_ALL}")
