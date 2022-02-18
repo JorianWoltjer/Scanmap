@@ -21,23 +21,18 @@ class Host:
     def __init__(self, ip, mac):
         self.ip = ip
         self.mac = mac
-        self.vendor = None
+        self.vendor = self.get_vendor()
         self.hostname = None
         self.os = None
         self.ports = []
         # self.applications
         # self.services
-        
+    
     def get_vendor(self):
-        if self.vendor: return self.vendor
-        
         matches = list(filter(self.mac.upper().startswith, mac_prefixes))
         if len(matches) > 0:
-            self.vendor =  mac_prefixes[max(matches, key=len)]  # Return longest match
-        else:
-            self.vendor = None
-        
-        return self.vendor
+            return mac_prefixes[max(matches, key=len)]  # Return longest match
+    
     # Grabs the hostname from the found host
     def get_hostname(self):
         if self.hostname: return self.hostname
@@ -56,7 +51,8 @@ class Host:
         nm = nmap.PortScanner()
         result = nm.scan(self.ip, ','.join(str(p) for p in self.ports), arguments="-n -O")
         try:
-            self.os = result['scan'][self.ip]['osmatch'][0]
+            match = result['scan'][self.ip]['osmatch'][0]
+            self.os = {"name": match['name'], "accuracy": match['accuracy']}
         except (KeyError, IndexError):
             self.os = None
         
@@ -91,14 +87,14 @@ class Host:
         data = {
             "ip": self.ip,
             "mac": self.mac,
-            "vendor": self.get_vendor()
-            # "os": self.os   
-            # "ports": self.ports
+            "vendor": self.vendor
         }
         if ARGS.hostname:
             data["hostname"] = self.hostname
         if ARGS.ports:
             data["ports"] = self.ports
+        if ARGS.os:
+            data["os"] = self.os
         
         return data
     
@@ -110,7 +106,7 @@ class Host:
             "Operating System": f"{self.os['name']} {Fore.LIGHTWHITE_EX}({self.os['accuracy']}%)" if self.os else None,
             "Ports": format_highlight(', '.join(str(p) for p in self.ports), Fore.LIGHTBLUE_EX) if self.ports else None,
         }
-        vendor_str = " => " + self.get_vendor() if self.get_vendor() else ""
+        vendor_str = " => " + self.vendor if self.vendor else ""
         ip = format_highlight(self.ip, Fore.LIGHTWHITE_EX)
         mac = format_highlight(self.mac, Fore.YELLOW)
         

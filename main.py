@@ -2,7 +2,7 @@ import argparse
 import sys
 
 parser = argparse.ArgumentParser()
-parser.add_argument("network", help="network to scan, or single host (ex. 192.168.1.0/24 or 192.168.1.42)")
+parser.add_argument("network", help="'auto' for automatic discovery, subnet, or single host (ex. 192.168.1.0/24 or 192.168.1.42)")
 parser.add_argument('-p', '--ports', required="--os" in " ".join(sys.argv), help="ports to scan for all found hosts. 'top', 'all', a range (ex. 1-1024), or a comma-separated list (ex. 22,80,443)")
 parser.add_argument('-o', '--output', help="save output to file in JSON format", type=argparse.FileType('w', encoding='UTF-8'))
 parser.add_argument('-n', '--hostname', help="get hostname for all found hosts", action='store_true')
@@ -43,6 +43,22 @@ def parse_ports(s):
     elif re.match("\d+(,\d+)*", s):
         return [int(port) for port in s.split(",")]
 
+def to_subnet(ip, mask):
+    import ipaddress
+    
+    cidr = sum([bin(int(x)).count('1') for x in mask.split('.')])
+    return str(ipaddress.ip_network(f"{ip}/{cidr}", strict=False))
+
+def auto_get_subnet():
+    import netifaces
+
+    gateway = netifaces.gateways()['default'][netifaces.AF_INET]
+
+    interface = netifaces.ifaddresses(gateway[1])
+    info = interface[netifaces.AF_INET][0]
+
+    return to_subnet(info['addr'], info['netmask'])
+
 def do_all_threaded(target, *args):
     threads = []
     for host in up_hosts:
@@ -59,6 +75,9 @@ up_hosts = []
 
 if ARGS.ports:
     ARGS.ports = parse_ports(ARGS.ports)
+    
+if ARGS.network == "auto":
+    ARGS.network = auto_get_subnet()
 
 # Start info
 current_time = datetime.datetime.now()
