@@ -1,5 +1,9 @@
 # Scanmap
 
+Scan networks fast with a fancy output. Made to be very user friendly. 
+
+## Usage
+
 ```
 usage: main.py [-h] [-a] [-p PORTS] [-o OUTPUT] [-n] [-t TIMEOUT] [-T THREADS] [--os] [--json] network
 
@@ -24,4 +28,4 @@ optional arguments:
 
 ## Example
 
-![sample_output](https://user-images.githubusercontent.com/26067369/155897182-2fead9a8-d1a6-4829-8b66-52a538da563a.png)
+![Sample output](https://user-images.githubusercontent.com/26067369/155897182-2fead9a8-d1a6-4829-8b66-52a538da563a.png)
