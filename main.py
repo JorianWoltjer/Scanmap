@@ -102,12 +102,12 @@ def small_list(l):
 current_time = datetime.datetime.now()
 print_(f"Started scan of {Style.BRIGHT}{Fore.LIGHTBLUE_EX}{ARGS.network}{Style.RESET_ALL} at {Fore.LIGHTWHITE_EX}{current_time.strftime('%Y-%m-%d %H:%M:%S')}{Style.RESET_ALL}")
 # Print options
-print_(f"{Fore.LIGHTBLACK_EX}┣╸{Style.RESET_ALL} Ports: {Fore.LIGHTWHITE_EX}{small_list(ARGS.ports)}{Style.RESET_ALL}") if ARGS.ports else None
-print_(f"{Fore.LIGHTBLACK_EX}┣╸{Style.RESET_ALL} Output file: {Fore.LIGHTWHITE_EX}{ARGS.output.name}{Style.RESET_ALL}") if ARGS.output else None
-print_(f"{Fore.LIGHTBLACK_EX}┣╸{Style.RESET_ALL} OS scan: {Fore.LIGHTWHITE_EX}enabled{Style.RESET_ALL}") if ARGS.os else None
-print_(f"{Fore.LIGHTBLACK_EX}┣╸{Style.RESET_ALL} Hostname scan: {Fore.LIGHTWHITE_EX}enabled{Style.RESET_ALL}") if ARGS.hostname else None
-print_(f"{Fore.LIGHTBLACK_EX}┣╸{Style.RESET_ALL} Threads: {Fore.LIGHTWHITE_EX}{ARGS.threads}{Style.RESET_ALL}")
-print_(f"{Fore.LIGHTBLACK_EX}┗╸{Style.RESET_ALL} Timeout: {Fore.LIGHTWHITE_EX}{ARGS.timeout}s{Style.RESET_ALL}")
+print_(f"{Fore.LIGHTBLACK_EX} ┣╸{Style.RESET_ALL} Ports: {Fore.LIGHTWHITE_EX}{small_list(ARGS.ports)}{Style.RESET_ALL}") if ARGS.ports else None
+print_(f"{Fore.LIGHTBLACK_EX} ┣╸{Style.RESET_ALL} Output file: {Fore.LIGHTWHITE_EX}{ARGS.output.name}{Style.RESET_ALL}") if ARGS.output else None
+print_(f"{Fore.LIGHTBLACK_EX} ┣╸{Style.RESET_ALL} OS scan: {Fore.LIGHTWHITE_EX}enabled{Style.RESET_ALL}") if ARGS.os else None
+print_(f"{Fore.LIGHTBLACK_EX} ┣╸{Style.RESET_ALL} Hostname scan: {Fore.LIGHTWHITE_EX}enabled{Style.RESET_ALL}") if ARGS.hostname else None
+print_(f"{Fore.LIGHTBLACK_EX} ┣╸{Style.RESET_ALL} Threads: {Fore.LIGHTWHITE_EX}{ARGS.threads}{Style.RESET_ALL}")
+print_(f"{Fore.LIGHTBLACK_EX} ┗╸{Style.RESET_ALL} Timeout: {Fore.LIGHTWHITE_EX}{ARGS.timeout}s{Style.RESET_ALL}")
 
 # Scan using ARP Ping
 print_(Fore.LIGHTBLACK_EX, end="")
