@@ -17,6 +17,24 @@ def set_timeout(timeout):
 def format_highlight(text, color, other_color=Fore.LIGHTBLACK_EX):
     return re.sub(rf'(\w+)(\W*)', rf'{color}\1{other_color}\2', text) + Style.RESET_ALL
 
+# Format ports list with color and protocol names
+def format_ports(ports):
+    s = ""
+    first = True
+    for p in ports:
+        try:
+            protocol = socket.getservbyport(p, 'tcp')
+        except socket.error:
+            protocol = ""
+         
+        if not first:
+            s += f"{Fore.LIGHTBLACK_EX}, {Style.RESET_ALL}"
+        first = False
+
+        s += f"{Fore.LIGHTBLUE_EX}{p}{Style.RESET_ALL}"
+        s += f" {Fore.LIGHTBLACK_EX}({Style.RESET_ALL}{protocol}{Fore.LIGHTBLACK_EX}){Style.RESET_ALL}" if protocol else ""
+    return s
+
 # Class for storing and analysing hosts found to be up
 class Host:
     def __init__(self, ip, mac):
@@ -63,6 +81,7 @@ class Host:
     def scan_ports(self, ports_to_scan):
         for port in ports_to_scan:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            # s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             result = s.connect_ex((self.ip, port))  # Try to connect to port
             s.close()
 
@@ -100,7 +119,7 @@ class Host:
         attributes = {  # Attributes displayed below host
             "Hostname": self.hostname,
             "Operating System": f"{self.os['name']} {Fore.LIGHTWHITE_EX}({self.os['accuracy']}%)" if self.os else None,
-            "Ports": format_highlight(', '.join(str(p) for p in self.ports), Fore.LIGHTBLUE_EX) if self.ports else None,
+            "Ports": format_ports(self.ports) if self.ports else None,
         }
         vendor_str = " => " + self.vendor if self.vendor else ""  # Add vendor if found (with arrow)
         ip = format_highlight(self.ip, Fore.LIGHTWHITE_EX)
