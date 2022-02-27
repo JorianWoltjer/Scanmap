@@ -5,7 +5,7 @@ import sys
 parser = argparse.ArgumentParser()
 parser.add_argument("network", help="'auto' for automatic detection, subnet, or single host (ex. 192.168.1.0/24 or 192.168.1.42)")
 parser.add_argument("-a", "--all", help="enable all options, try to find everything", action="store_true")
-parser.add_argument('-p', '--ports', required="--os" in " ".join(sys.argv), help="ports to scan for all found hosts. 'top', 'all', a range (ex. 1-1024), or a comma-separated list (ex. 22,80,443)")
+parser.add_argument('-p', '--ports', required="--os" in sys.argv, help="ports to scan for all found hosts. 'top', 'all', a range (ex. 1-1024), or a comma-separated list (ex. 22,80,443)")
 parser.add_argument('-o', '--output', help="save output to file in JSON format", type=argparse.FileType('w', encoding='UTF-8'))
 parser.add_argument('-n', '--hostname', help="get hostname for all found hosts", action='store_true')
 parser.add_argument('-t', '--timeout', help="timeout for socket connections (in seconds)", type=float, default=0.2)
