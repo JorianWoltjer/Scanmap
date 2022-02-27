@@ -119,17 +119,19 @@ for host in answered.res:
 
 # Find hostnames (threaded)
 if ARGS.hostname:
-    print_(f"{Fore.LIGHTBLACK_EX}Finding hostnames...{Style.RESET_ALL}")  # TODO: Progress bar, or estimate
+    print_(f"{Fore.LIGHTBLACK_EX}Finding hostnames... (± 10s){Style.RESET_ALL}")
     do_all_threaded(Host.get_hostname)
 
 # Scan ports (threaded)
 if ARGS.ports:
-    print_(f"{Fore.LIGHTBLACK_EX}Scanning ports...{Style.RESET_ALL}")  # TODO: Progress bar, or estimate
+    estimate = round((len(ARGS.ports) * ARGS.timeout) / ARGS.threads, 1)
+    print_(f"{Fore.LIGHTBLACK_EX}Scanning ports... (± {estimate}s){Style.RESET_ALL}")
     do_all_threaded(Host.scan_ports_fast, ARGS.ports, ARGS.threads)
 
 # Operating system detection (threaded)
 if ARGS.os:
-    print_(f"{Fore.LIGHTBLACK_EX}Detecting operating systems...{Style.RESET_ALL}")  # TODO: Progress bar, or estimate
+    estimate = max(len(host.ports) for host in up_hosts)*1.5  # 1.5 = average time to scan 1 port
+    print_(f"{Fore.LIGHTBLACK_EX}Detecting operating systems... (± {estimate}s){Style.RESET_ALL}")
     do_all_threaded(Host.get_os)
 
 # Print results
