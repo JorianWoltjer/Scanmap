@@ -37,10 +37,10 @@ def parse_ports(s):
     elif s == "top":  # Top 100 ports
         with open("data/tcp-top100.txt") as f:
             return [int(port) for port in f.read().splitlines()]
-    elif re.fullmatch("\d+-\d+", s):  # Range of ports
+    elif re.fullmatch(r"\d+-\d+", s):  # Range of ports
         a, b = s.split("-")
         return range(int(a), int(b) + 1)
-    elif re.fullmatch("\d+(,\d+)*", s):  # Comma-separated list of ports
+    elif re.fullmatch(r"\d+(,\d+)*", s):  # Comma-separated list of ports
         return [int(port) for port in s.split(",")]
     else:
         parser.error(f"Invalid --ports range or list: {s}")
