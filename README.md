@@ -31,3 +31,12 @@ optional arguments:
 ## Example
 
 ![Sample output](https://user-images.githubusercontent.com/26067369/155897182-2fead9a8-d1a6-4829-8b66-52a538da563a.png)
+
+## Install
+
+```shell
+git clone https://github.com/JorianWoltjer/Scanmap.git
+cd Scanmap
+pip install -r requirements.txt
+python main.py -h
+```
