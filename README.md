@@ -1,6 +1,8 @@
 # Scanmap
 
-Scan networks fast with a fancy output. Made to be very user friendly. 
+Scan networks fast with a fancy output. Made to be very user friendly.
+
+Originally made for a school project, but made into a real useful tool.
 
 ## Usage
 
